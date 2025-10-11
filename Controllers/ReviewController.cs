@@ -1,4 +1,5 @@
 ﻿using MatchaReviewApp.Data;
+using MatchaReviewApp.ViewModels;
 using MatchaReviewApp.Interfaces;
 using MatchaReviewApp.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -26,6 +27,7 @@ namespace MatchaReviewApp.Controllers
         }
 
         // GET: /Review/Create?storeId=5
+        [HttpGet]
         public async Task<IActionResult> Create(int storeId)
         {
             var store = await _storeService.GetStoreByIdAsync(storeId);
@@ -41,51 +43,59 @@ namespace MatchaReviewApp.Controllers
             }
 
             ViewBag.Store = store;
-            // Pass a new Review object with StoreId set for the form
-            return View(new Review { StoreId = storeId });
+            return View(new ReviewFormViewModel { StoreId = storeId });
         }
 
-        // POST: /Review/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Review review)
+        public async Task<IActionResult> Create(ReviewFormViewModel model)
         {
-            // Set the current user ID
-            review.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var store = await _storeService.GetStoreByIdAsync(model.StoreId);
 
-            // Defensive: Ensure StoreId is valid and user hasn't already reviewed
-            var store = await _storeService.GetStoreByIdAsync(review.StoreId);
             if (store == null)
             {
                 ModelState.AddModelError("", "Store not found.");
-                return View(review);
             }
 
-            var hasReviewed = await _reviewService.UserHasReviewedStoreAsync(review.UserId, review.StoreId);
-            if (hasReviewed)
+            if (string.IsNullOrEmpty(userId))
             {
-                TempData["Error"] = "You have already reviewed this store.";
-                return RedirectToAction("Details", "Store", new { id = review.StoreId });
+                ModelState.AddModelError("", "User is not authenticated.");
             }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Store = store;
-                return View(review);
+                ViewBag.Store = store ?? new Store();
+                return View(model);
+            }
+
+            var hasReviewed = await _reviewService.UserHasReviewedStoreAsync(userId, model.StoreId);
+            if (hasReviewed)
+            {
+                TempData["Error"] = "You have already reviewed this store.";
+                return RedirectToAction("Details", "Store", new { id = model.StoreId });
             }
 
             try
             {
-                review.CreatedAt = DateTime.Now;
+                var review = new Review
+                {
+                    StoreId = model.StoreId,
+                    UserId = userId,
+                    Rating = model.Rating,
+                    Comment = model.Comment,
+                    CreatedAt = DateTime.Now
+                };
+
                 await _reviewService.AddReviewAsync(review);
                 TempData["Success"] = "Review submitted successfully!";
-                return RedirectToAction("Details", "Store", new { id = review.StoreId });
+                return RedirectToAction("Details", "Store", new { id = model.StoreId });
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "An error occurred while submitting your review: " + ex.Message);
-                ViewBag.Store = store;
-                return View(review);
+                ViewBag.Store = store ?? new Store();
+                return View(model);
             }
         }
 
