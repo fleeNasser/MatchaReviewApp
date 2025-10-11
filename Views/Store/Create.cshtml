@@ -1,0 +1,103 @@
+﻿@model Store
+
+@{
+    ViewData["Title"] = "Add New Store";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Stores</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Add New Store
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Create Store Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> Add New Matcha Store
+                    </h3>
+                </div>
+
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Store Name -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Store Name</label>
+                            <input asp-for="Name"
+                                   class="form-control"
+                                   placeholder="e.g., Tokyo Matcha Cafe" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label">Address</label>
+                            <input asp-for="Address"
+                                   class="form-control"
+                                   placeholder="e.g., 123 Main St, Sydney NSW" />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <!-- Initial Rating -->
+                        <div class="mb-3">
+                            <label asp-for="Rating" class="form-label">Initial Rating</label>
+                            <input asp-for="Rating"
+                                   type="number"
+                                   step="0.1"
+                                   min="0"
+                                   max="5"
+                                   class="form-control"
+                                   value="0" />
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Rating between 0 and 5 (will be updated based on reviews)
+                            </small>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Describe the store, specialties, atmosphere..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <hr />
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Create Store
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

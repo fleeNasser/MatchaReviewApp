@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="container mt-5">
+    <!-- Hero Section -->
+    <section class="text-center mb-5">
+        <div class="p-5 bg-light rounded-3 shadow-sm">
+            <h1 class="display-4 fw-bold text-success">
+                Welcome to <span class="text-primary">Matcha Review 🍵</span>
+            </h1>
+            <p class="lead mt-3">Discover and review the best matcha stores in your area.</p>
+            <hr class="my-4 mx-auto w-50" />
+            <p class="text-muted mb-4">
+                Find authentic matcha experiences, read honest reviews from fellow matcha lovers, and share your own discoveries.
+            </p>
+
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a class="btn btn-primary btn-lg" asp-controller="Store" asp-action="Index">
+                    <i class="bi bi-search"></i> Browse Stores
+                </a>
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a class="btn btn-outline-primary btn-lg" asp-controller="Review" asp-action="MyReviews">
+                        <i class="bi bi-person-circle"></i> My Reviews
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-outline-primary btn-lg" asp-area="Identity" asp-page="/Account/Register">
+                        <i class="bi bi-person-plus"></i> Sign Up
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="mt-5">
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body py-4">
+                        <i class="bi bi-search display-4 text-primary mb-3"></i>
+                        <h4 class="fw-semibold">Discover Stores</h4>
+                        <p class="text-muted">Explore top-rated matcha stores with real reviews and location details.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body py-4">
+                        <i class="bi bi-star-fill display-4 text-warning mb-3"></i>
+                        <h4 class="fw-semibold">Read Reviews</h4>
+                        <p class="text-muted">See what other matcha enthusiasts are saying before you visit.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body py-4">
+                        <i class="bi bi-pencil-square display-4 text-success mb-3"></i>
+                        <h4 class="fw-semibold">Share Your Experience</h4>
+                        <p class="text-muted">Help others discover great spots by writing your own reviews.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

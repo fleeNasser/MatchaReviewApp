@@ -1,0 +1,110 @@
+﻿@model Review
+
+@{
+    ViewData["Title"] = "Write a Review";
+    var store = ViewBag.Store as Store;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Store" asp-action="Index">Stores</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Store" asp-action="Details" asp-route-id="@store.Id">
+                            @store.Name
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Write Review</li>
+                </ol>
+            </nav>
+
+            <!-- Review Form Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-pencil-square"></i>
+                        Write a Review for @store.Name
+                    </h3>
+                </div>
+
+                <div class="card-body">
+                    <!-- Info Message -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Share your experience to help others discover great matcha stores!
+                    </div>
+
+                    <!-- Review Form -->
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="StoreId" value="@store.Id" />
+
+                        <!-- Validation Summary -->
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Rating -->
+                        <div class="mb-3">
+                            <label asp-for="Rating" class="form-label">Rating</label>
+                            <div class="rating-input">
+                                <div class="btn-group" role="group">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        var starId = "star" + i;
+                                        <input type="radio"
+                                               class="btn-check"
+                                               name="Rating"
+                                               id="@starId"
+                                               value="@i"
+                                               autocomplete="off"
+                                               required />
+                                        <label class="btn btn-outline-warning" for="@starId">
+                                            <i class="bi bi-star-fill"></i> @i
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <!-- Comment -->
+                        <div class="mb-3">
+                            <label asp-for="Comment" class="form-label">Your Review</label>
+                            <textarea asp-for="Comment"
+                                      class="form-control"
+                                      rows="6"
+                                      placeholder="Tell us about your experience... What did you order? How was the matcha quality? Would you recommend this store?"
+                                      required></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <hr />
+
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Submit Review
+                            </button>
+                            <a asp-controller="Store"
+                               asp-action="Details"
+                               asp-route-id="@store.Id"
+                               class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

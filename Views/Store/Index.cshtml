@@ -1,0 +1,123 @@
+﻿@model List<Store>
+
+@{
+    ViewData["Title"] = "Matcha Stores";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Matcha Stores</h1>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Store
+            </a>
+        }
+    </div>
+
+    <!-- Search & Sorting -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form asp-action="Search" method="get" class="d-flex">
+                <input type="text"
+                       name="term"
+                       class="form-control me-2"
+                       placeholder="Search stores by name or address..."
+                       value="@ViewBag.SearchTerm" />
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+        </div>
+
+        <div class="col-md-6 text-end">
+            <div class="btn-group" role="group">
+                <a asp-action="Index" asp-route-sortBy="rating"
+                   class="btn btn-sm @(ViewBag.CurrentSort == "rating" ? "btn-primary" : "btn-outline-secondary")">
+                    <i class="bi bi-star-fill"></i> By Rating
+                </a>
+                <a asp-action="Index" asp-route-sortBy="name"
+                   class="btn btn-sm @(ViewBag.CurrentSort == "name" ? "btn-primary" : "btn-outline-secondary")">
+                    <i class="bi bi-sort-alpha-down"></i> By Name
+                </a>
+                <a asp-action="Index" asp-route-sortBy="newest"
+                   class="btn btn-sm @(ViewBag.CurrentSort == "newest" ? "btn-primary" : "btn-outline-secondary")">
+                    <i class="bi bi-clock"></i> Newest
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- No Results -->
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No stores found.
+            @if (User.IsInRole("Admin"))
+            {
+                <text> Be the first to <a asp-action="Create">add a store</a>!</text>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Store Cards -->
+        <div class="row">
+            @foreach (var store in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">@store.Name</h5>
+                            <p class="card-text text-muted">
+                                <i class="bi bi-geo-alt"></i> @store.Address
+                            </p>
+
+                            <div class="mb-2">
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="bi bi-star-fill"></i>
+                                    @store.Rating.ToString("F1")
+                                </span>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(store.Description))
+                            {
+                                <p class="card-text small">
+                                    @(
+                                                            store.Description.Length > 100
+                                                            ? store.Description.Substring(0, 100) + "..."
+                                                            : store.Description
+                                                            )
+                            </p>
+                                        }
+                        </div>
+
+                        <div class="card-footer bg-transparent">
+                            <a asp-action="Details" asp-route-id="@store.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Details
+                            </a>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@store.Id"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
