@@ -46,6 +46,7 @@ namespace MatchaReviewApp.Controllers
             return View(new ReviewFormViewModel { StoreId = storeId });
         }
 
+        // POST: /Review/Create?storeId=5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ReviewFormViewModel model)

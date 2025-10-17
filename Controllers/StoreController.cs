@@ -1,14 +1,13 @@
 ﻿using MatchaReviewApp.Interfaces;
 using MatchaReviewApp.Models;
 using MatchaReviewApp.Services.Strategies;
+using MatchaReviewApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.DotNet.Scaffolding.Shared.Project;
 namespace MatchaReviewApp.Controllers
 {
-    /// <summary>
     /// Store controller handling HTTP requests.
-    /// Demonstrates low coupling - depends only on service interfaces.
-    /// </summary>
     public class StoreController : Controller
     {
         private readonly IStoreService _storeService;
@@ -67,20 +66,29 @@ namespace MatchaReviewApp.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
-            return View();
+            return View(new StoreFormViewModel());
         }
 
         // POST: /Store/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(Store store)
+        public async Task<IActionResult> Create(StoreFormViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(store);
+                return View(model);
 
             try
             {
+                var store = new Store
+                {
+                    Name = model.Name.Trim(),
+                    Address = model.Address.Trim(),
+                    Description = model.Description.Trim(),
+                    Rating = model.Rating,
+                    CreatedAt = DateTime.UtcNow
+
+                };  
                 await _storeService.CreateStoreAsync(store);
                 TempData["Success"] = "Store created successfully!";
                 return RedirectToAction(nameof(Index));
@@ -88,7 +96,7 @@ namespace MatchaReviewApp.Controllers
             catch (ArgumentException ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                return View(store);
+                return View(model);
             }
         }
 
@@ -99,37 +107,58 @@ namespace MatchaReviewApp.Controllers
             var store = await _storeService.GetStoreByIdAsync(id);
             if (store == null) return NotFound();
 
-            return View(store);
+            var vm = new StoreFormViewModel
+            {
+                Id = store.Id,
+                Name = store.Name,
+                Address = store.Address,
+                Description = store.Description,
+                Rating = store.Rating,
+                CreatedAt = store.CreatedAt
+            };
+
+            return View(vm);
         }
 
         // POST: /Store/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, Store store)
+        public async Task<IActionResult> Edit(int id, StoreFormViewModel model)
         {
-            if (id != store.Id) return BadRequest();
+            if (id != model.Id) return BadRequest();
 
             if (!ModelState.IsValid)
-                return View(store);
+                return View(model);
 
             try
             {
-                var result = await _storeService.UpdateStoreAsync(store);
-                if (!result) return NotFound();
+                var store = await _storeService.GetStoreByIdAsync(id);
+                if (store == null) return NotFound();
 
+                //Apply view model values to the store
+                store.Name = model.Name.Trim();
+                store.Address = model.Address.Trim();
+                store.Description = model.Description.Trim();
+                store.Rating = model.Rating;
+                if(model.CreatedAt.HasValue)
+                {
+                    store.CreatedAt = model.CreatedAt.Value;
+                }   
+                var result = await _storeService.UpdateStoreAsync(store);
+                if(!result) return NotFound();
                 TempData["Success"] = "Store updated successfully!";
                 
                 return RedirectToAction(nameof(Details), new { id });
 
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException)
             {
                 foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
                     ModelState.AddModelError("", error.ErrorMessage);
                 }
-                return View(store);
+                return View(model);
             }
         }
 

@@ -3,10 +3,7 @@ using MatchaReviewApp.Models;
 using Microsoft.Extensions.Logging;
 namespace MatchaReviewApp.Services
 {
-    /// <summary>
     /// Store service containing business logic.
-    /// Demonstrates high cohesion (single responsibility) and low coupling (depends on interfaces).
-    /// </summary>
     public class StoreService : IStoreService
     {
         private readonly IRepository<Store> _storeRepository;
@@ -46,10 +43,7 @@ namespace MatchaReviewApp.Services
                 .ToList();
         }
 
-        /// <summary>
         /// Applies polymorphic sort strategy to store list.
-        /// Demonstrates polymorphism - different strategies at runtime.
-        /// </summary>
         public List<Store> ApplySortStrategy(
             List<Store> stores,
             ISortStrategy sortStrategy)
