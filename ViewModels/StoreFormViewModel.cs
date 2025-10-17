@@ -26,51 +26,6 @@ namespace MatchaReviewApp.ViewModels
 
         // Optional: keep CreatedAt for edit scenarios so views can display/preserve it
         public DateTime? CreatedAt { get; set; }
-
-        // Build a new Store entity from the VM (use for Create)
-        public Store ToModel()
-        {
-            return new Store
-            {
-                Id = Id ?? 0,
-                Name = Name?.Trim() ?? string.Empty,
-                Address = Address?.Trim() ?? string.Empty,
-                Rating = Rating,
-                Description = Description?.Trim() ?? string.Empty,
-                CreatedAt = CreatedAt ?? DateTime.UtcNow
-            };
-        }
-
-        // Apply VM values to an existing Store entity (use for Edit)
-        public void ApplyTo(Store store)
-        {
-            if (store == null) throw new ArgumentNullException(nameof(store));
-
-            store.Name = Name?.Trim() ?? store.Name;
-            store.Address = Address?.Trim() ?? store.Address;
-            store.Rating = Rating;
-            store.Description = Description?.Trim() ?? store.Description;
-
-            if (CreatedAt.HasValue)
-            {
-                store.CreatedAt = CreatedAt.Value;
-            }
-        }
-
-        // Create a populated VM from an existing Store (use in Edit GET)
-        public static StoreFormViewModel FromModel(Store store)
-        {
-            if (store == null) throw new ArgumentNullException(nameof(store));
-
-            return new StoreFormViewModel
-            {
-                Id = store.Id,
-                Name = store.Name,
-                Address = store.Address,
-                Rating = store.Rating,
-                Description = store.Description,
-                CreatedAt = store.CreatedAt
-            };
-        }
+       
     }
 }
