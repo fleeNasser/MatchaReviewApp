@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MatchaReviewApp.Models;
+using MatchaReviewApp.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MatchaReviewApp.Controllers
@@ -7,15 +8,25 @@ namespace MatchaReviewApp.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IStoreService _storeService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IStoreService storeService)
         {
             _logger = logger;
+            _storeService = storeService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            // Get all stores and pick top 3 by rating (tie-breaker: newest)
+            var stores = await _storeService.GetAllStoresAsync();
+            var top = stores
+                .OrderByDescending(s => s.Rating)
+                .ThenByDescending(s => s.CreatedAt)
+                .Take(3)
+                .ToList();
+
+            return View(top);
         }
 
         public IActionResult Privacy()
