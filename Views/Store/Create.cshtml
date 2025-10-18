@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="card-body">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
                         <!-- Validation Summary -->
@@ -79,6 +79,22 @@
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
+                        <!-- Image Upload -->
+                        <div class="mb-3">
+                            <label asp-for="Image" class="form-label">Store Image (optional)</label>
+                            <input asp-for="Image" class="form-control" type="file" accept="image/*" id="imageInput" />
+                            <span asp-validation-for="Image" class="text-danger"></span>
+                            <small class="form-text text-muted">Allowed: jpg, jpeg, png, gif, webp — max 2 MB.</small>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="mb-3" id="previewContainer" style="display:none;">
+                            <label class="form-label">Preview</label>
+                            <div>
+                                <img id="previewImage" src="#" alt="Image preview" class="img-fluid rounded" style="max-height:300px;" />
+                            </div>
+                        </div>
+
                         <hr />
 
                         <!-- Action Buttons -->
@@ -101,4 +117,26 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        (function () {
+            var input = document.getElementById('imageInput');
+            var preview = document.getElementById('previewContainer');
+            var img = document.getElementById('previewImage');
+
+            input?.addEventListener('change', function (e) {
+                var file = input.files && input.files[0];
+                if (!file) {
+                    preview.style.display = 'none';
+                    img.src = '#';
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function (evt) {
+                    img.src = evt.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+        })();
+    </script>
 }

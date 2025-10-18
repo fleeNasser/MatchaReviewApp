@@ -13,7 +13,7 @@ namespace MatchaReview.Data
             RoleManager<IdentityRole> roleManager)
         {
             // Ensure database is created
-            context.Database.EnsureCreated();
+            await context.Database.MigrateAsync();
 
             // Check if we already have data
             if (context.Stores.Any())
@@ -31,24 +31,7 @@ namespace MatchaReview.Data
                 }
             }
 
-            // Create Admin User
-            var adminUser = new User
-            {
-                UserName = "admin@matchareview.com",
-                Email = "admin@matchareview.com",
-                EmailConfirmed = true,
-                FirstName = "Admin",
-                LastName = "User",
-                JoinDate = DateTime.Now.AddDays(-90)
-            };
-
-            var adminPassword = "User@123";
-            var adminResult = await userManager.FindByEmailAsync(adminUser.Email);
-            if (adminResult == null)
-            {
-                await userManager.CreateAsync(adminUser, adminPassword);
-                await userManager.AddToRoleAsync(adminUser, "Admin");
-            }
+           
 
             // Create Regular Users
             var user1 = new User

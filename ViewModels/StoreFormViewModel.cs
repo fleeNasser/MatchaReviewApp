@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using MatchaReviewApp.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace MatchaReviewApp.ViewModels
 {
@@ -26,6 +27,16 @@ namespace MatchaReviewApp.ViewModels
 
         // Optional: keep CreatedAt for edit scenarios so views can display/preserve it
         public DateTime? CreatedAt { get; set; }
-       
+
+        // File upload (optional)
+        [DataType(DataType.Upload)]
+        [Display(Name = "Store Image")]
+        public IFormFile? Image { get; set; }
+
+        // Holds the existing image path so edit view can render it
+        public string? ExistingImagePath { get; set; }
+
+        // If checked on edit, remove existing image
+        public bool RemoveImage { get; set; }
     }
 }
