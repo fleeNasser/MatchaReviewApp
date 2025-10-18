@@ -1,0 +1,78 @@
+@using MatchaReviewApp.ViewModels
+@model ReviewFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Review";
+    var store = ViewBag.Store as MatchaReviewApp.Models.Store;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Store" asp-action="Index">Stores</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Store" asp-action="Details" asp-route-id="@Model.StoreId">@store?.Name</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit Review</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="StoreId" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Rating" class="form-label">Rating</label>
+                            <div class="rating-input">
+                                <div class="btn-group" role="group">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        var starId = "star" + i;
+                                        <input asp-for="Rating"
+                                               class="btn-check"
+                                               type="radio"
+                                               id="@starId"
+                                               value="@i"
+                                               autocomplete="off"
+                                               required />
+                                        <label class="btn btn-outline-warning" for="@starId">
+                                            <i class="bi bi-star-fill"></i> @i
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+
+                        <div class="mb-3">
+                            <label asp-for="Comment" class="form-label">Comment</label>
+                            <textarea asp-for="Comment" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <a asp-action="MyReviews" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
