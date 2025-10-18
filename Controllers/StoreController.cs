@@ -3,8 +3,11 @@ using MatchaReviewApp.Models;
 using MatchaReviewApp.Services.Strategies;
 using MatchaReviewApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DotNet.Scaffolding.Shared.Project;
+using System.IO;
+using System.Linq;
+
 namespace MatchaReviewApp.Controllers
 {
     /// Store controller handling HTTP requests.
@@ -12,14 +15,17 @@ namespace MatchaReviewApp.Controllers
     {
         private readonly IStoreService _storeService;
         private readonly IReviewService _reviewService;
+        private readonly IWebHostEnvironment _env;
 
         // Constructor Injection (Dependency Injection)
         public StoreController(
             IStoreService storeService,
-            IReviewService reviewService)
+            IReviewService reviewService,
+            IWebHostEnvironment env)
         {
             _storeService = storeService;
             _reviewService = reviewService;
+            _env = env;
         }
 
         // GET: /Store
@@ -85,10 +91,22 @@ namespace MatchaReviewApp.Controllers
                     Name = model.Name.Trim(),
                     Address = model.Address.Trim(),
                     Description = model.Description.Trim(),
-                    Rating = model.Rating,
+                    //Rating = model.Rating,
                     CreatedAt = DateTime.UtcNow
+                };
 
-                };  
+                // Handle image upload if provided
+                if (model.Image != null && model.Image.Length > 0)
+                {
+                    var savedPath = await SaveImageAsync(model.Image);
+                    if (savedPath == null)
+                    {
+                        ModelState.AddModelError("Image", "Failed to save image.");
+                        return View(model);
+                    }
+                    store.ImagePath = savedPath;
+                }
+
                 await _storeService.CreateStoreAsync(store);
                 TempData["Success"] = "Store created successfully!";
                 return RedirectToAction(nameof(Index));
@@ -114,7 +132,8 @@ namespace MatchaReviewApp.Controllers
                 Address = store.Address,
                 Description = store.Description,
                 Rating = store.Rating,
-                CreatedAt = store.CreatedAt
+                CreatedAt = store.CreatedAt,
+                ExistingImagePath = store.ImagePath
             };
 
             return View(vm);
@@ -136,21 +155,50 @@ namespace MatchaReviewApp.Controllers
                 var store = await _storeService.GetStoreByIdAsync(id);
                 if (store == null) return NotFound();
 
-                //Apply view model values to the store
+                var oldImagePath = store.ImagePath;
+
+                // Apply view model values to the store
                 store.Name = model.Name.Trim();
                 store.Address = model.Address.Trim();
                 store.Description = model.Description.Trim();
-                store.Rating = model.Rating;
-                if(model.CreatedAt.HasValue)
+                //store.Rating = model.Rating;
+                if (model.CreatedAt.HasValue)
                 {
                     store.CreatedAt = model.CreatedAt.Value;
-                }   
-                var result = await _storeService.UpdateStoreAsync(store);
-                if(!result) return NotFound();
-                TempData["Success"] = "Store updated successfully!";
-                
-                return RedirectToAction(nameof(Details), new { id });
+                }
 
+                // If a new image was uploaded -> save and replace
+                if (model.Image != null && model.Image.Length > 0)
+                {
+                    var savedPath = await SaveImageAsync(model.Image);
+                    if (savedPath == null)
+                    {
+                        ModelState.AddModelError("Image", "Failed to save image.");
+                        return View(model);
+                    }
+                    store.ImagePath = savedPath;
+                }
+                else if (model.RemoveImage)
+                {
+                    // remove existing reference
+                    store.ImagePath = null;
+                }
+
+                var result = await _storeService.UpdateStoreAsync(store);
+                if (!result) return NotFound();
+
+                // If update succeeded, delete old image file if it was replaced or removed
+                if (!string.IsNullOrEmpty(oldImagePath))
+                {
+                    // deleted when replaced or explicitly removed
+                    if ((store.ImagePath == null) || (store.ImagePath != null && store.ImagePath != oldImagePath))
+                    {
+                        TryDeleteFileQuietly(oldImagePath);
+                    }
+                }
+
+                TempData["Success"] = "Store updated successfully!";
+                return RedirectToAction(nameof(Details), new { id });
             }
             catch (ArgumentException)
             {
@@ -168,11 +216,78 @@ namespace MatchaReviewApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
+            // fetch the store first to know image to delete after successful DB delete
+            var store = await _storeService.GetStoreByIdAsync(id);
+            if (store == null) return NotFound();
+
             var result = await _storeService.DeleteStoreAsync(id);
             if (!result) return NotFound();
 
+            // Attempt to delete associated image file (non-fatal)
+            if (!string.IsNullOrEmpty(store.ImagePath))
+            {
+                TryDeleteFileQuietly(store.ImagePath);
+            }
+
             TempData["Success"] = "Store deleted successfully!";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Saves uploaded image to wwwroot/uploads/stores and returns relative URL or null on failure
+        private async Task<string?> SaveImageAsync(IFormFile image)
+        {
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var ext = Path.GetExtension(image.FileName).ToLowerInvariant();
+            const long maxBytes = 2 * 1024 * 1024; // 2 MB
+
+            if (!allowed.Contains(ext))
+                return null;
+
+            if (image.Length > maxBytes)
+                return null;
+
+            var uploadsFolder = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "stores");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            try
+            {
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                // return a web-relative path
+                return $"/uploads/stores/{fileName}";
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Try delete file quietly (non-throwing)
+        private void TryDeleteFileQuietly(string relativeUrlPath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(relativeUrlPath)) return;
+
+                // ensure relative path points inside wwwroot
+                var trimmed = relativeUrlPath.TrimStart('~').TrimStart('/');
+                var physical = Path.Combine(_env.WebRootPath ?? "wwwroot", trimmed.Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(physical))
+                {
+                    System.IO.File.Delete(physical);
+                }
+            }
+            catch
+            {
+                // swallow - non-fatal cleanup
+            }
         }
     }
 }
