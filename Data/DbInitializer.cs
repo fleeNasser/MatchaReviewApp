@@ -30,7 +30,25 @@ namespace MatchaReview.Data
                     await roleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
+            // Create default admin user
+            var adminEmail = "admin@matchareview.com";
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
+            if (adminUser == null)
+            {
+                adminUser = new User
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    FirstName = "Admin",
+                    LastName = "User",
+                    JoinDate = DateTime.UtcNow,
+                    EmailConfirmed = true
+                };
+
+                await userManager.CreateAsync(adminUser, "Admin123!");
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
             // Create Regular Users with concrete join dates
             var user1 = new User
             {
