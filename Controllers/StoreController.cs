@@ -91,7 +91,7 @@ namespace MatchaReviewApp.Controllers
                     Name = model.Name.Trim(),
                     Address = model.Address.Trim(),
                     Description = model.Description.Trim(),
-                    Rating = model.Rating,
+                    //Rating = model.Rating,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -161,7 +161,7 @@ namespace MatchaReviewApp.Controllers
                 store.Name = model.Name.Trim();
                 store.Address = model.Address.Trim();
                 store.Description = model.Description.Trim();
-                store.Rating = model.Rating;
+                //store.Rating = model.Rating;
                 if (model.CreatedAt.HasValue)
                 {
                     store.CreatedAt = model.CreatedAt.Value;
