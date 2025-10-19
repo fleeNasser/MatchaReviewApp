@@ -5,11 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MatchaReviewApp.Repositories
 {
-    /// <summary>
     /// Generic repository implementation using Entity Framework.
-    /// Demonstrates use of generics with type constraints.
-    /// Provides data access abstraction (low coupling).
-    /// </summary>
+    /// Used as a data access layer for all entities.
+
     public class Repository<T> : IRepository<T> where T : BaseEntity
     {
         private readonly ApplicationDbContext _context;

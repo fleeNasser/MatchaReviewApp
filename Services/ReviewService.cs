@@ -4,10 +4,8 @@ using MatchaReviewApp.Models;
 using Microsoft.EntityFrameworkCore;
 namespace MatchaReviewApp.Services
 {
-    /// <summary>
     /// Review service containing business logic.
     /// Demonstrates high cohesion and low coupling.
-    /// </summary>
     public class ReviewService : IReviewService
     {
         private readonly IRepository<Review> _reviewRepository;

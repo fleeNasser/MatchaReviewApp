@@ -2,9 +2,7 @@
 
 namespace MatchaReviewApp.Interfaces
 {
-    /// <summary>
     /// Review service interface for business logic operations.
-    /// </summary>
     public interface IReviewService
     {
         Task<List<Review>> GetReviewsByStoreAsync(int storeId);

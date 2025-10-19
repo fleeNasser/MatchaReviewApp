@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace MatchaReviewApp.ViewModels
 {
-    /// ViewModel for create/edit Store. Performs validation and provides conversion helpers
-    /// so controllers only deal with the VM and service calls.
     public class StoreFormViewModel
     {
         public int? Id { get; set; }

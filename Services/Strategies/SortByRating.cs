@@ -8,7 +8,6 @@ namespace MatchaReviewApp.Services.Strategies
     {
         public IEnumerable<Store> Sort(IEnumerable<Store> stores)
         {
-            // Lambda expression
             return stores.OrderByDescending(s => s.Rating);
         }
     }

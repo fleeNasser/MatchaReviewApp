@@ -184,7 +184,6 @@ namespace MatchaReviewApp.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isAdmin = User.IsInRole("Admin");
 
-            // Allow owner or admin to delete
             if (!isAdmin && review.UserId != userId)
             {
                 return Forbid();
