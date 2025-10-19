@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "My Reviews";
     var userName = ViewBag.UserFullName as string;
+    var currentUserId = ViewBag.UserId as string;
 }
 
 <div class="container mt-4">
@@ -74,23 +75,27 @@
                                             <i class="bi bi-star"></i>
                                         }
                                     </div>
-                                    <small class="text-muted">
-                                        @review.CreatedAt.ToString("MMM dd, yyyy")
-                                    </small>
+                                    <small class="text-muted">@review.CreatedAt.ToString("MMM dd, yyyy")</small>
                                 </div>
                             </div>
 
-                            <!-- Comment -->
-                            <p class="card-text mb-0">@review.Comment</p>
-                        </div>
+                            <p class="card-text mb-3">@review.Comment</p>
 
-                        <div class="card-footer bg-transparent border-0 d-flex justify-content-end">
-                            <a asp-controller="Store"
-                               asp-action="Details"
-                               asp-route-id="@review.StoreId"
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> View Store
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Edit" asp-route-id="@review.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+
+                                @if (User.IsInRole("Admin") || review.UserId == currentUserId)
+                                {
+                                    <form asp-controller="Review" asp-action="Delete" method="post" asp-route-id="@review.Id" class="d-inline" onsubmit="return confirm('Delete this review?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>

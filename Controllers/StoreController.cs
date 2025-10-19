@@ -286,7 +286,7 @@ namespace MatchaReviewApp.Controllers
             }
             catch
             {
-                // swallow - non-fatal cleanup
+               
             }
         }
     }

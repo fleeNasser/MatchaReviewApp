@@ -2,11 +2,8 @@
 
 namespace MatchaReviewApp.Interfaces
 {
-    // Interfaces/IRepository.cs
-    /// <summary>
     /// Generic repository interface
     /// Provides contract for data access operations.
-    /// </summary>
     public interface IRepository<T> where T : BaseEntity
     {
         Task<List<T>> GetAllAsync();

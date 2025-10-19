@@ -6,7 +6,6 @@ namespace MatchaReviewApp.Services.Strategies
     {
         public IEnumerable<Store> Sort(IEnumerable<Store> stores)
         {
-            // Lambda expression
             return stores.OrderBy(s => s.Name);
         }
     }

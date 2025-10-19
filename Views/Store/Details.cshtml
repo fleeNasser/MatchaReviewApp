@@ -1,8 +1,10 @@
-﻿@model Store
+﻿@using System.Security.Claims
+@model Store
 
 @{
     ViewData["Title"] = Model.Name;
     var reviews = ViewBag.Reviews as List<Review> ?? new List<Review>();
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 <div class="container mt-4">
@@ -155,6 +157,25 @@
                                     </small>
                                 </div>
                                 <p class="mb-0">@review.Comment</p>
+
+                                @* Delete button for owner or admin *@
+                                @if (User.IsInRole("Admin") || review.UserId == currentUserId)
+                                {
+                                    <div class="mt-2">
+                                        <form asp-controller="Review"
+                                              asp-action="Delete"
+                                              method="post"
+                                              asp-route-id="@review.Id"
+                                              asp-route-storeId="@Model.Id"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Delete this review?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
                             </div>
                         }
                     }

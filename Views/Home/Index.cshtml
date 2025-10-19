@@ -1,8 +1,77 @@
-﻿@{
+﻿@using MatchaReviewApp.Models
+@model List<Store>
+
+@{
     ViewData["Title"] = "Home";
 }
 
-<div class="container mt-5">
+<div class="container mt-4">
+
+    @if (Model != null && Model.Any())
+    {
+        <div id="topStoresCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    <button type="button"
+                            data-bs-target="#topStoresCarousel"
+                            data-bs-slide-to="@i"
+                            class="@(i == 0 ? "active" : "")"
+                            aria-current="@(i == 0 ? "true" : "false")"
+                            aria-label="Slide @(i + 1)"></button>
+                }
+            </div>
+
+            <div class="carousel-inner">
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var store = Model[i];
+                    var bgStyle = !string.IsNullOrEmpty(store.ImagePath)
+                        ? $"background-image: url('{store.ImagePath}'); background-size: cover; background-position: center;"
+                        : "background: linear-gradient(135deg,#e9f7ef,#f1f8ff);";
+
+                    <div class="carousel-item @(i == 0 ? "active" : "")" style="min-height:420px; @bgStyle">
+                        <div class="d-flex h-100 align-items-center justify-content-center" style="background: rgba(0,0,0,0.25);">
+                            <div class="carousel-caption d-none d-md-block text-start" style="max-width:720px;">
+                                <h3 class="text-white fw-bold">@store.Name</h3>
+                                <p class="text-white-50">
+                                    @{
+                                        var desc = string.IsNullOrWhiteSpace(store.Description)
+                                            ? "No description available."
+                                            : (store.Description.Length > 160 ? store.Description.Substring(0, 157) + "..." : store.Description);
+                                    }
+                                    @desc
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="Store" asp-action="Details" asp-route-id="@store.Id" class="btn btn-primary">
+                                        <i class="bi bi-eye"></i> View Store
+                                    </a>
+                                    <span class="align-self-center text-white-50">
+                                        <i class="bi bi-star-fill text-warning"></i> @store.Rating.ToString("F1")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#topStoresCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#topStoresCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- If no stores, you can still show hero content or a placeholder -->
+        <div class="mb-5"></div>
+    }
+
     <!-- Hero Section -->
     <section class="text-center mb-5">
         <div class="p-5 bg-light rounded-3 shadow-sm">

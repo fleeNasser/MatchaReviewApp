@@ -4,10 +4,8 @@ using MatchaReviewApp.Models;
 using Microsoft.EntityFrameworkCore;
 namespace MatchaReviewApp.Services
 {
-    /// <summary>
     /// Review service containing business logic.
     /// Demonstrates high cohesion and low coupling.
-    /// </summary>
     public class ReviewService : IReviewService
     {
         private readonly IRepository<Review> _reviewRepository;
@@ -27,10 +25,13 @@ namespace MatchaReviewApp.Services
 
         public async Task<List<Review>> GetReviewsByStoreAsync(int storeId)
         {
-            var reviews = await _reviewRepository.GetAllAsync();
-
-            // Lambda expression
-            return reviews.Where(r => r.StoreId == storeId).ToList();
+            // Use DbContext to eager-load User and Store so views can access review.User.FullName
+            return await _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Store)
+                .Where(r => r.StoreId == storeId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
         }
 
         public async Task<List<Review>> GetReviewsByUserAsync(string userId)
@@ -92,6 +93,37 @@ namespace MatchaReviewApp.Services
             store.Rating = (decimal)averageRating;
 
             await _storeRepository.UpdateAsync(store);
+        }
+
+        // --- New methods for edit/delete ---
+
+        public async Task<Review> GetReviewByIdAsync(int id)
+        {
+            return await _reviewRepository.GetByIdAsync(id);
+        }
+
+        public async Task<bool> UpdateReviewAsync(Review review)
+        {
+            var existing = await _reviewRepository.GetByIdAsync(review.Id);
+            if (existing == null) return false;
+
+            existing.Comment = review.Comment;
+            existing.Rating = review.Rating;
+            existing.CreatedAt = review.CreatedAt; // preserve original CreatedAt
+
+            await _reviewRepository.UpdateAsync(existing);
+            await UpdateStoreRatingAsync(existing.StoreId);
+            return true;
+        }
+
+        public async Task<bool> DeleteReviewAsync(int id)
+        {
+            var existing = await _reviewRepository.GetByIdAsync(id);
+            if (existing == null) return false;
+
+            await _reviewRepository.DeleteAsync(id);
+            await UpdateStoreRatingAsync(existing.StoreId);
+            return true;
         }
     }
 }

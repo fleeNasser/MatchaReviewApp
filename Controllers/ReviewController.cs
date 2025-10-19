@@ -108,7 +108,96 @@ namespace MatchaReviewApp.Controllers
             var reviews = await _reviewService.GetReviewsByUserAsync(userId);
 
             ViewBag.UserFullName = user?.FullName;
+            ViewBag.UserId = userId;
             return View(reviews);
+        }
+
+        // GET: /Review/Edit/5
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var review = await _reviewService.GetReviewByIdAsync(id);
+            if (review == null) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && review.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            var vm = new ReviewFormViewModel
+            {
+                Id = review.Id,
+                StoreId = review.StoreId,
+                Rating = review.Rating,
+                Comment = review.Comment
+            };
+
+            ViewBag.Store = await _storeService.GetStoreByIdAsync(review.StoreId);
+            return View(vm);
+        }
+
+        // POST: /Review/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, ReviewFormViewModel model)
+        {
+            if (model.Id == null || id != model.Id.Value) return BadRequest();
+
+            var review = await _reviewService.GetReviewByIdAsync(id);
+            if (review == null) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && review.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Store = await _storeService.GetStoreByIdAsync(model.StoreId);
+                return View(model);
+            }
+
+            review.Rating = model.Rating;
+            review.Comment = model.Comment;
+            review.CreatedAt = DateTime.Now;
+
+            var updated = await _reviewService.UpdateReviewAsync(review);
+            if (!updated) return NotFound();
+
+            TempData["Success"] = "Review updated successfully!";
+            return RedirectToAction("MyReviews");
+        }
+
+        // POST: /Review/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id, int? storeId)
+        {
+            var review = await _reviewService.GetReviewByIdAsync(id);
+            if (review == null) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && review.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            var deleted = await _reviewService.DeleteReviewAsync(id);
+            if (!deleted) return NotFound();
+
+            TempData["Success"] = "Review deleted successfully!";
+
+            if (storeId.HasValue)
+                return RedirectToAction("Details", "Store", new { id = storeId.Value });
+
+            return RedirectToAction("MyReviews");
         }
     }
 }

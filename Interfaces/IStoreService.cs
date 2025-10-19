@@ -2,10 +2,7 @@
 
 namespace MatchaReviewApp.Interfaces
 {
-    /// <summary>
     /// Store service interface for business logic operations.
-    /// Example of interface implementation (requirement: 2+ interfaces).
-    /// </summary>
     public interface IStoreService
     {
         Task<List<Store>> GetAllStoresAsync();

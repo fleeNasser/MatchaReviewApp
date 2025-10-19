@@ -1,10 +1,9 @@
 ﻿using MatchaReviewApp.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-/// <summary>
+
 /// Database context for the application.
 /// Inherits from IdentityDbContext with custom User model.
-/// </summary>
 namespace MatchaReviewApp.Data
 {
     public class ApplicationDbContext : IdentityDbContext<User>
